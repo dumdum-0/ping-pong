@@ -72,6 +72,9 @@ public:
     }
 };
 
+enum GameScreen { START , PLAYING , GAMEOVER};
+
+
 int main()
 {
 
@@ -88,28 +91,87 @@ int main()
     Ball ball = {screenWidth / 2.0f, screenHeight / 2.0f, 5, 5, 25};
     Paddle paddle = {20, screenHeight / 2.0f - 50.0f, 15, 150, 10};
 
-    int score ;
+    int score = 0;
+    GameScreen current = START ;
 
     while (!WindowShouldClose())
     {
-        paddle.Update();
-        ball.Update();
-
-        BeginDrawing();
-        ClearBackground(BLACK);
-        ball.Draw();
-        paddle.Draw();
-
-        if (CheckCollisionCircleRec(Vector2{ball.x , ball.y } , ball.radius , Rectangle{paddle.x , paddle.y , paddle.width, paddle.height}))
+        
+        switch(current)
         {
-            ball.speed_x *= -1;
-            ball.speed_x += 1;
-            ball.speed_y += 1;
-            score++;
-        }
+            case START:
+            
+            if (IsKeyPressed(KEY_ENTER))
+            {
+                current = PLAYING;
+            }
+            break;
+            
+            case PLAYING:
+                paddle.Update();
+                ball.Update();
+                if (CheckCollisionCircleRec(Vector2{ball.x , ball.y } , ball.radius , Rectangle{paddle.x , paddle.y , paddle.width, paddle.height}))
+                {
+                    ball.speed_x *= -1;
+                    ball.speed_x += 1;
+                    if (ball.speed_y > 0)
+                    {
+                        ball.speed_y += 1;
+                    }
+                    if (ball.speed_y < 0)
+                    {
+                        ball.speed_y -= 1;
+                    }
+                    
+                    
+                    score++;
+                    
+                }
+                if (ball.x - ball.radius < 0)
+                {
+                    current = GAMEOVER;
+                }
+                break;
+                
+                case GAMEOVER:
+                if (IsKeyPressed(KEY_ENTER))
+                {
+                    ball.x = GetScreenWidth()/2;
+                    ball.y = GetScreenHeight()/2;
+                    ball.speed_x = -5 ;
+                    ball.speed_y = 5;
+                    paddle.y = GetScreenHeight()/2 - paddle.height/2;
+                    score = 0;
+                    
+                    current = PLAYING;
+                }
+                break;
+            }
+            
+            BeginDrawing();
+            ClearBackground(BLACK);
+            
+            switch(current)
+            {
+                case START:
+                DrawText("PONG PONG", screenWidth/2-MeasureText("PONG PONG",60)/2,screenHeight/2 - 100, 60 ,WHITE);
+                DrawText("Press ENTER to Start", screenWidth/2 - MeasureText("Press ENTER to Start",20)/2,screenHeight/2 + 50 ,20 , LIGHTGRAY);
+                break;
+                
+                case PLAYING:
+                ball.Draw();
+                paddle.Draw();
+                DrawText(TextFormat("Score: %i",score), GetScreenWidth()-150,20,30,WHITE);
+                break;
 
-        DrawText(TextFormat("Score: %i",score), GetScreenWidth()-150,20,30,WHITE);
-        EndDrawing();
+                case GAMEOVER:
+                DrawText("GAME OVER", screenWidth/2 - MeasureText("GAME OVER",60)/2, screenHeight/2 - 100 , 60 , RED);
+                DrawText(TextFormat("Final Score: %i",score), screenWidth/2 - MeasureText(TextFormat("Final Score: %i",score),30)/2 ,screenHeight/2 ,30 ,WHITE);
+                DrawText("Press ENTER to Play Again" , screenWidth/2 - MeasureText("Press ENTER to Play Again",20)/2, screenHeight/2+75 , 20 ,LIGHTGRAY);
+                break;
+            }  
+            
+            EndDrawing();
     }
 
     CloseWindow();
