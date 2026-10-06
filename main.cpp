@@ -83,6 +83,11 @@ int main()
     ToggleFullscreen();
     SetTargetFPS(60);
 
+    InitAudioDevice();
+    Sound bounce = LoadSound("bounce.wav");
+    Sound game_end = LoadSound("gameover.mp3");
+    
+
     int screenWidth ;
     int screenHeight ;
     screenWidth = GetScreenWidth();
@@ -111,7 +116,8 @@ int main()
                 paddle.Update();
                 ball.Update();
                 if (CheckCollisionCircleRec(Vector2{ball.x , ball.y } , ball.radius , Rectangle{paddle.x , paddle.y , paddle.width, paddle.height}))
-                {
+                {   
+                    PlaySound(bounce);
                     ball.speed_x *= -1;
                     ball.speed_x += 1;
                     if (ball.speed_y > 0)
@@ -130,6 +136,7 @@ int main()
                 if (ball.x - ball.radius < 0)
                 {
                     current = GAMEOVER;
+                    PlaySound(game_end);
                 }
                 break;
                 
