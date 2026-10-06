@@ -86,8 +86,9 @@ int main()
     screenHeight = GetScreenHeight();
 
     Ball ball = {screenWidth / 2.0f, screenHeight / 2.0f, 5, 5, 25};
-    Paddle paddle = {20, screenHeight / 2.0f - 50.0f, 15, 150, 6};
+    Paddle paddle = {20, screenHeight / 2.0f - 50.0f, 15, 150, 10};
 
+    int score ;
 
     while (!WindowShouldClose())
     {
@@ -102,11 +103,15 @@ int main()
         if (CheckCollisionCircleRec(Vector2{ball.x , ball.y } , ball.radius , Rectangle{paddle.x , paddle.y , paddle.width, paddle.height}))
         {
             ball.speed_x *= -1;
+            ball.speed_x += 1;
+            ball.speed_y += 1;
+            score++;
         }
-        
 
+        DrawText(TextFormat("Score: %i",score), GetScreenWidth()-150,20,30,WHITE);
         EndDrawing();
     }
+
     CloseWindow();
     return 0;
 }
