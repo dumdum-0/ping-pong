@@ -50,24 +50,44 @@ public:
 
     void Update()
     {
+        if (IsKeyDown(KEY_W) || IsKeyDown(KEY_UP))
+        {
+            y -= speed;
+        }
+        if (IsKeyDown(KEY_S) || IsKeyDown(KEY_DOWN))
+        {
+            y += speed;
+        }
+
+        if ( (y + height/2) > GetScreenHeight())
+        {
+            y = GetScreenHeight() - height/2;
+        }
+        if (y < 0)
+        {
+            y = 0;
+        }
+        
         
     }
 };
 
 int main()
 {
-    int screenWidth = 800;
-    int screenHeight = 600;
-    InitWindow(screenWidth, screenHeight, "PONG PONG");
+
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
-    MaximizeWindow();
+    InitWindow(800, 600, "PONG PONG");
+    ToggleFullscreen();
     SetTargetFPS(60);
 
+    int screenWidth ;
+    int screenHeight ;
     screenWidth = GetScreenWidth();
     screenHeight = GetScreenHeight();
 
-    Ball ball = {screenWidth / 2.0f, screenHeight / 2.0f, 5, 5, 10};
-    Paddle paddle = {20, screenHeight / 2.0f - 50.0f, 15, 100, 6};
+    Ball ball = {screenWidth / 2.0f, screenHeight / 2.0f, 5, 5, 25};
+    Paddle paddle = {20, screenHeight / 2.0f - 50.0f, 15, 150, 6};
+
 
     while (!WindowShouldClose())
     {
@@ -78,6 +98,13 @@ int main()
         ClearBackground(BLACK);
         ball.Draw();
         paddle.Draw();
+
+        if (CheckCollisionCircleRec(Vector2{ball.x , ball.y } , ball.radius , Rectangle{paddle.x , paddle.y , paddle.width, paddle.height}))
+        {
+            ball.speed_x *= -1;
+        }
+        
+
         EndDrawing();
     }
     CloseWindow();
