@@ -16,18 +16,9 @@ public:
     {
         x += speed_x;
         y += speed_y;
-
-        if (x + radius > GetScreenWidth())
-        {
-            speed_x *= -1;
-        }
         if (y + radius > GetScreenHeight())
         {
             speed_y *= -1;
-        }
-        if (x - radius <= 0)
-        {
-            speed_x *= -1;
         }
         if (y - radius <= 0)
         {
@@ -67,12 +58,38 @@ public:
         {
             y = 0;
         }
+    }
+
+    void UpdateBot(float ball_y)
+    {
+        float center_y = y + height/2 ;
+
+        if (center_y > ball_y)
+        {
+            y -= speed;
+        }
+
+        if (center_y < ball_y)
+        {
+            y += speed;
+        }
+
+        if (y < 0)
+        {
+            y = 0;
+        }
+        if (y+height > GetScreenHeight())
+        {
+            y = GetScreenHeight() - height;
+        }
+        
+        
         
         
     }
 };
 
-enum GameScreen { START , PLAYING , GAMEOVER};
+enum GameScreen { START , PLAYING , GAMEOVER, GAMEWON};
 
 
 int main()
@@ -84,7 +101,7 @@ int main()
     SetTargetFPS(60);
 
     InitAudioDevice();
-    Sound bounce = LoadSound("bounce.wav");
+    Sound bb = LoadSound("bounce.mp3");
     Sound game_end = LoadSound("gameover.mp3");
     
 
@@ -95,6 +112,7 @@ int main()
 
     Ball ball = {screenWidth / 2.0f, screenHeight / 2.0f, 5, 5, 25};
     Paddle paddle = {20, screenHeight / 2.0f - 50.0f, 15, 150, 10};
+    Paddle bot = {GetScreenWidth()-20.0f,screenHeight/2.0f,15,150,10};
 
     int score = 0;
     GameScreen current = START ;
@@ -115,11 +133,13 @@ int main()
             case PLAYING:
                 paddle.Update();
                 ball.Update();
+                bot.UpdateBot(ball.y);
                 if (CheckCollisionCircleRec(Vector2{ball.x , ball.y } , ball.radius , Rectangle{paddle.x , paddle.y , paddle.width, paddle.height}))
                 {   
-                    PlaySound(bounce);
+                    PlaySound(bb);
                     ball.speed_x *= -1;
                     ball.speed_x += 1;
+
                     if (ball.speed_y > 0)
                     {
                         ball.speed_y += 1;
@@ -128,16 +148,30 @@ int main()
                     {
                         ball.speed_y -= 1;
                     }
-                    
-                    
                     score++;
+                }
+                if (CheckCollisionCircleRec(Vector2{ball.x,ball.y}, ball.radius , Rectangle{bot.x , bot.y , bot.width , bot.height}))
+                {
+                    if (ball.speed_x > 0)
+                    {
+                        PlaySound(bb);
+                        ball.speed_x *= -1;
+                    }
                     
                 }
+                
                 if (ball.x - ball.radius < 0)
                 {
                     current = GAMEOVER;
                     PlaySound(game_end);
                 }
+
+                if (ball.x + ball.radius > GetScreenWidth())
+                {
+                    current = GAMEWON;
+                    PlaySound(game_end);
+                }
+                
                 break;
                 
                 case GAMEOVER:
@@ -168,6 +202,7 @@ int main()
                 case PLAYING:
                 ball.Draw();
                 paddle.Draw();
+                bot.Draw();
                 DrawText(TextFormat("Score: %i",score), GetScreenWidth()-150,20,30,WHITE);
                 break;
 
@@ -176,11 +211,18 @@ int main()
                 DrawText(TextFormat("Final Score: %i",score), screenWidth/2 - MeasureText(TextFormat("Final Score: %i",score),30)/2 ,screenHeight/2 ,30 ,WHITE);
                 DrawText("Press ENTER to Play Again" , screenWidth/2 - MeasureText("Press ENTER to Play Again",20)/2, screenHeight/2+75 , 20 ,LIGHTGRAY);
                 break;
+
+                case GAMEWON:
+                DrawText("GAME WON", screenWidth/2 - MeasureText("GAME WON",60)/2, screenHeight/2 - 100 , 60 , GOLD);
+                DrawText(TextFormat("Final Score: %i",score), screenWidth/2 - MeasureText(TextFormat("Final Score: %i",score),30)/2 ,screenHeight/2 ,30 ,WHITE);
+                DrawText("Press ENTER to Play Again" , screenWidth/2 - MeasureText("Press ENTER to Play Again",20)/2, screenHeight/2+75 , 20 ,LIGHTGRAY);
             }  
             
             EndDrawing();
     }
-
+    UnloadSound(bb);
+    UnloadSound(game_end);
+    CloseAudioDevice();
     CloseWindow();
     return 0;
 }
